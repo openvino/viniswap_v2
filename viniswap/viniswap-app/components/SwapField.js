@@ -39,11 +39,11 @@ const SwapField = ({ fieldProps }) => {
       token1Reserves.toString(),
       18
     );
-    console.log(
-      toEth(inputAmountBN),
-      toEth(token0ReservesBN),
-      toEth(token1ReservesBN)
-    );
+    // console.log(
+    //   toEth(inputAmountBN),
+    //   toEth(token0ReservesBN),
+    //   toEth(token1ReservesBN)
+    // );
 
     if (CurrentTokenAddress === path[0]) {
       const outputAmount = token1ReservesBN
@@ -51,6 +51,14 @@ const SwapField = ({ fieldProps }) => {
         .div(token0ReservesBN.add(inputAmountBN)); //Uniswap's formula
 
       setCounterPart(toEth(outputAmount));
+      // console.log(
+      //   srcToken,
+      //   destToken,
+      //   toEth(inputAmountBN),
+      //   toEth(outputAmount),
+      //   toEth(token0ReservesBN),
+      //   toEth(token1ReservesBN)
+      // );
     }
 
     if (CurrentTokenAddress === path[1]) {
@@ -58,6 +66,14 @@ const SwapField = ({ fieldProps }) => {
         .mul(inputAmountBN)
         .div(token1ReservesBN.add(inputAmountBN)); //Uniswap's formula
       setCounterPart(toEth(outputAmount));
+      console.log(
+        srcToken,
+        destToken,
+        toEth(inputAmountBN),
+        toEth(outputAmount),
+        toEth(token0ReservesBN),
+        toEth(token1ReservesBN)
+      );
     }
   };
 
