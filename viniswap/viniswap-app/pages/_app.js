@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import "../styles/globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
 import merge from "lodash.merge";
@@ -13,7 +14,9 @@ import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
 import { infuraProvider } from "wagmi/providers/infura";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { jsonRpcProvider } from "@wagmi/core/providers/jsonRpc";
+import Modal from "react-modal";
 
+Modal.setAppElement("#__next");
 const OPsepolia = {
   id: 11155420,
   name: "OP Sepolia",
@@ -29,37 +32,41 @@ const OPsepolia = {
     },
   },
 };
-
+const sepolia = {
+  id: 11155111,
+  name: "Sepolia",
+  network: "sepolia",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    public: "https://sepolia.infura.io/v3/",
+  },
+  blockExplorers: {
+    default: {
+      name: "Sepolia etherscan",
+      url: "https://sepolia.etherscan.io",
+    },
+  },
+};
 const { provider, chains } = configureChains(
-  [OPsepolia],
+  [OPsepolia, sepolia],
   [
-    // infuraProvider({
-    //   apiKey: process.env.NEXT_PUBLIC_API_KEY,
-    // }),
-    alchemyProvider({
-      apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
-    }),
-
+    alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY }),
     jsonRpcProvider({
-      rpc: (chain) => ({
-        http: `https://sepolia.optimism.io`,
-      }),
-    }),
+      rpc: (chain) => ({ http: chain.rpcUrls.default })
+    })
   ]
 );
-console.log(provider);
-console.log(chains);
+
 const { connectors } = getDefaultWallets({
   appName: "Uniswap",
   chains,
 });
-console.log(connectors);
 const wagmiClient = createClient({
   autoConnect: false,
   connectors,
   provider,
 });
-console.log("Wagmi Client:", wagmiClient);
+// console.log("Wagmi Client:", wagmiClient);
 const myTheme = merge(midnightTheme(), {
   colors: {
     accentColor: "#1818b",
@@ -68,6 +75,14 @@ const myTheme = merge(midnightTheme(), {
 });
 
 function MyApp({ Component, pageProps }) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  if (!isClient) {
+    return null; //loader
+  }
   return (
     <WagmiConfig client={wagmiClient}>
       <RainbowKitProvider chains={chains} theme={myTheme}>

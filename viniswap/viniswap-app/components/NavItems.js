@@ -8,7 +8,7 @@ const NavItems = () => {
   const SWAP = "Swap";
   const POOL = "Pool";
   const BRIDGE = "Bridge";
-  const CHART = "Charts";
+  const CHART = "Exchange";
 
   const [selectedNavItem, setSelectedNavItem] = useState(SWAP);
 
@@ -17,8 +17,18 @@ const NavItems = () => {
     router.push(route.toLowerCase());
   };
 
+  useEffect(() => {
+    setSelectedNavItem(
+      router.pathname.substring(1).charAt(0).toUpperCase() +
+        router.pathname.substring(2)
+    );
+  }, [router.pathname]);
+
   return (
-    <div className="bg-zinc-900 h-fit flex items-center justify-around rounded-full">
+    <div
+      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      className="bg-transparent h-fit flex items-center justify-around rounded-full w-full overflow-auto "
+    >
       <p className={getNavIconClassName(SWAP)} onClick={handleNavigate(SWAP)}>
         {SWAP}
       </p>
@@ -33,7 +43,7 @@ const NavItems = () => {
       </p>
       <p
         className={getNavIconClassName(CHART)}
-        onClick={() => window.open("https://info.uniswap.org/#/", "_blank")}
+        onClick={() => window.open("https://openvino.exchange", "_blank")}
       >
         {CHART}
         <ArrowSmUpIcon className="h-4 rotate-45" />
@@ -43,7 +53,7 @@ const NavItems = () => {
 
   function getNavIconClassName(name) {
     let className =
-      "p-1 px-4 cursor-pointer border-[4px] border-transparent flex items-center";
+      "p-1 px-2 cursor-pointer border-[4px] border-transparent flex items-center";
     className +=
       name === selectedNavItem
         ? " bg-zinc-800 border-zinc-900 rounded-full"

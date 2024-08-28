@@ -1,13 +1,6 @@
-import React, { useEffect, useState } from "react";
-
+import { useEffect, useState } from "react";
+import { coinAddresses, getCoinAddress } from "../utils/SupportedCoins";
 import { Dropdown } from "@nextui-org/react";
-import {
-  WETH,
-  MTB24,
-  DEFAULT_VALUE,
-  coinAddresses,
-} from "../utils/SupportedCoins";
-
 const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
   const menu = coinAddresses.map((coin) => ({
     key: coin.name,
@@ -18,7 +11,7 @@ const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
   const [menuItems, setMenuItems] = useState(getFilteredItems(ignoreValue));
 
   function getFilteredItems(ignoreValue) {
-    return menu.filter((item) => item["key"] !== ignoreValue);
+    return menu.filter((item) => item.key !== ignoreValue);
   }
 
   useEffect(() => {
@@ -33,9 +26,9 @@ const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
     <Dropdown>
       <Dropdown.Button
         css={{
-          backgroundColor:
-            selectedItem === DEFAULT_VALUE ? "#840c4a" : "#2c2f36",
+          backgroundColor: "#2c2f36",
           minWidth: "8rem",
+          // selectedItem === DEFAULT_VALUE ? "#2172e5" : "#2c2f36",
         }}
       >
         {selectedItem}
@@ -45,7 +38,7 @@ const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
         items={menuItems}
         onAction={(key) => {
           setSelectedItem(key);
-          setToken(key);
+          setToken({ name: key, address: getCoinAddress(key) });
         }}
       >
         {(item) => (
@@ -61,4 +54,5 @@ const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
     </Dropdown>
   );
 };
+
 export default Selector;

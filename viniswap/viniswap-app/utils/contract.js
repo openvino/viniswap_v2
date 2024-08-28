@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { mtb24ABI, routerABI, wethABI } from "./abi";
+import { bridgeAbi, factoryABI, mtb24ABI, pairABI, routerABI, wethABI } from "./abi";
 
 export const mtb24Contract = async (address) => {
   if (typeof window !== "undefined") {
@@ -19,6 +19,7 @@ export const wethContract = async () => {
     const { ethereum } = window;
 
     if (ethereum) {
+      const routerObj = await routerContract();
       const signer = provider.getSigner();
       const contractReader = new ethers.Contract(
         process.env.NEXT_PUBLIC_WETH_ADDRESS,
@@ -29,23 +30,6 @@ export const wethContract = async () => {
     }
   }
 };
-
-// export const routerContract = async () => {
-//   if (typeof window !== 'undefined') {
-//     const provider = new ethers.providers.Web3Provider(window.ethereum);
-//     const { ethereum } = window;
-
-//     if (ethereum) {
-//       const signer = provider.getSigner();
-//       const contractReader = new ethers.Contract(
-//         process.env.NEXT_PUBLIC_ROUTER,
-//         routerABI,
-//         signer
-//       );
-//       return contractReader;
-//     }
-//   }
-// };
 
 export const routerContract = async () => {
   if (typeof window !== "undefined") {
@@ -76,3 +60,60 @@ export const routerContract = async () => {
     console.error("You must run this in a browser.");
   }
 };
+
+export const factoryContract = async () => {
+  if (typeof window !== "undefined" && window.ethereum) {
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const router = await routerContract();
+      const factoryAddress = await router.factory();
+      return new ethers.Contract(factoryAddress, factoryABI, signer);
+    } catch (error) {
+      console.error("Failed to get factory contract:", error);
+      throw error;
+    }
+  } else {
+    throw new Error("Ethereum object not found or not running in a browser.");
+  }
+};
+
+export const pairContract = async (pairAddress) => {
+  if (typeof window !== "undefined" && window.ethereum) {
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      return new ethers.Contract(pairAddress, pairABI, signer);
+    } catch (error) {
+      console.error("Failed to get pair contract:", error);
+      throw error;
+    }
+  } else {
+    throw new Error("Ethereum object not found or not running in a browser.");
+  }
+};
+
+
+export const mtbContracts = async (address) => {
+  if (typeof window !== "undefined") {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const { ethereum } = window;
+    if (ethereum) {
+      const signer = provider.getSigner();
+      const contractReader = new ethers.Contract(address, mtb24ABI, signer);
+      return contractReader;
+    }
+  }
+};
+
+export const bridgeContract = async (address) => {
+  if (typeof window !== "undefined") {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const { ethereum } = window;
+    if (ethereum) {
+      const signer = provider.getSigner();
+      const contractReader = new ethers.Contract(address, bridgeAbi, signer);
+      return contractReader;
+    }
+  }
+}

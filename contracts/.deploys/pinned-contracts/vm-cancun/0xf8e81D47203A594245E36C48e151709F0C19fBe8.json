@@ -1,6 +1,6 @@
 {
   "name": "UniswapV2Factory",
-  "address": "0x01be8dc8892b723c957cc98b183e9aa4ac5f1cbe",
+  "address": "0xf8e81D47203A594245E36C48e151709F0C19fBe8",
   "abi": [
     {
       "constant": false,
@@ -210,5 +210,5 @@
     }
   ],
   "filePath": " - connect to localhost - /contracts/univ2/v2-core/contracts/UniswapV2Factory.sol",
-  "pinnedAt": 1716400660176
+  "pinnedAt": 1716829248875
 }
