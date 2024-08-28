@@ -14,12 +14,12 @@ const useSwaps = () => {
   const [outputValue, setOutputValue] = useState();
   const [swapOptionsOpen, setSwapOptionsOpen] = useState(false);
   const [slippage, setSlippage] = useState(defaultSlippage);
-
   const [swapBtnText, setSwapBtnText] = useState(ENTER_AMOUNT);
   const [txPending, setTxPending] = useState(false);
   const [price, setPrice] = useState({});
   const inValue = useState();
   const outValue = useState();
+  const [loading, setLoading] = useState(false);
 
   const isReversed = useState(false);
 
@@ -54,16 +54,26 @@ const useSwaps = () => {
 
     checkNetwork();
     const fetchPrice = async (inToken, outToken) => {
-      console.log(inToken, outToken);
-      const address0 = getCoinAddress(inToken);
-      const address1 = getCoinAddress(outToken);
-      console.log(address0, address1);
-      const relativePrices = await getPrice(address0, address1);
-      console.log(relativePrices);
-      setPrice(relativePrices);
+      try {
+        setLoading(true)
+        console.log(inToken, outToken);
+        const address0 = getCoinAddress(inToken);
+        const address1 = getCoinAddress(outToken);
+        console.log(address0, address1);
+        const relativePrices = await getPrice(address0, address1);
+     
+      
+        setPrice(relativePrices);
+      } catch (error) {
+        toast.error(error.message)
+
+        throw new Error('Error')
+      }finally {
+        setLoading(false)
+      }
     };
 
-    if (srcToken && destToken && chain?.id === 11155420)
+    if (srcToken && destToken )
       fetchPrice(srcToken, destToken);
   }, [srcToken, destToken, chain]);
 
@@ -92,6 +102,7 @@ const useSwaps = () => {
     destTokenObj,
     price,
     setPrice,
+    loading
   };
 };
 

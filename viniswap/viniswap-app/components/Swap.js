@@ -71,6 +71,7 @@ const Swap = () => {
     destTokenObj,
     price,
     setPrice,
+    loading
   } = useSwaps();
 
   const [sourceValue, setSourceValue] = useState();
@@ -251,12 +252,15 @@ const Swap = () => {
       </div>
       <div className="flex bg-[#212429] p-4 py-6 rounded-xl mb-2 border-[2px] border-transparent hover:border-zinc-600">
         <SwapField
+        loading={loading}
           fieldProps={{
             ...srcTokenObj,
             setCounterPart: setOutputValue,
             price,
             srcToken,
             destToken,
+        
+
           }}
         />
 
@@ -268,6 +272,7 @@ const Swap = () => {
 
       <div className="bg-[#212429] p-4 py-6 rounded-xl mt-2 border-[2px] border-transparent hover:border-zinc-600">
         <SwapField
+        loading={loading}
           fieldProps={{
             ...destTokenObj,
             setCounterPart: setInputValue,

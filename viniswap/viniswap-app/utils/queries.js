@@ -9,44 +9,42 @@ import { toEth, toWei } from "./ether-utils";
 import { getCoinName } from "./SupportedCoins";
 import { bridgeAbi, mtb24ABI, wethABI } from "./abi";
 import { getPairAddress } from "./whitelistedPools";
-
 const WETH_ADDRESS = process.env.NEXT_PUBLIC_WETH_ADDRESS;
 const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_MTB24_ADDRESS;
+import { getProvider, getSignerOrProvider } from "./contract";
 
 export const tokenBalance = async (tokenAddress = TOKEN_ADDRESS) => {
   try {
-    const tokenContractObj = await mtb24Contract(tokenAddress);
-    const routerObj = await routerContract();
-    const walletAddress = await routerObj.signer.getAddress();
+    const provider = getProvider();
+    const signerOrProvider = await getSignerOrProvider(provider);
+    const tokenContractObj = new ethers.Contract(tokenAddress, mtb24ABI, signerOrProvider);
 
-    const name = await tokenContractObj.name();
-    const balance = await tokenContractObj.balanceOf(walletAddress);
-    const formatedBalance = toEth(balance).toString();
-    console.log(name);
-    console.log(formatedBalance);
-    return formatedBalance;
+    if (signerOrProvider.getAddress) {
+      const walletAddress = await signerOrProvider.getAddress();
+      const balance = await tokenContractObj.balanceOf(walletAddress);
+      return toEth(balance).toString();
+    }
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching token balance:", error);
   }
 };
 
 export const wethBalance = async () => {
   try {
-    const routerObj = await routerContract();
-    const walletAddress = await routerObj.signer.getAddress();
-    const wethContractObj = await wethContract(WETH_ADDRESS);
-    const name = await wethContractObj.name();
-    console.log(name);
+    const provider = getProvider();
+    const signerOrProvider = await getSignerOrProvider(provider);
+    const wethContractObj = new ethers.Contract(WETH_ADDRESS, wethABI, signerOrProvider);
 
-    const balance = await wethContractObj.provider.getBalance(walletAddress);
-    const formatedBalance = toEth(balance).toString();
-
-    console.log(formatedBalance);
-    return formatedBalance;
+    if (signerOrProvider.getAddress) {
+      const walletAddress = await signerOrProvider.getAddress();
+      const balance = await wethContractObj.provider.getBalance(walletAddress);
+      return toEth(balance).toString();
+    }
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching WETH balance:", error);
   }
 };
+
 
 export const tokenAllowance = async () => {
   try {
@@ -91,17 +89,12 @@ export const wethAllowance = async () => {
 };
 
 
-export const increaseBridgeAllowance = async (amount,tokenAddress, bridgeAddress) => {
+export const increaseBridgeAllowance = async (amount, tokenAddress, bridgeAddress) => {
   try {
-
-    const signer = new ethers.providers.Web3Provider(
-      window.ethereum
-    ).getSigner();
-
-    const tokenContractObj = new ethers.Contract(tokenAddress, mtb24ABI, signer);
-
-    const bridgeContractObj = new ethers.Contract(bridgeAddress, bridgeAbi, signer);
-   
+    const provider = getProvider();
+    const signerOrProvider = await getSignerOrProvider(provider);
+    const tokenContractObj = new ethers.Contract(tokenAddress, mtb24ABI, signerOrProvider);
+    const bridgeContractObj = new ethers.Contract(bridgeAddress, bridgeAbi, signerOrProvider);
 
     const approvalTx = await tokenContractObj.approve(
       bridgeContractObj.address,
@@ -113,7 +106,7 @@ export const increaseBridgeAllowance = async (amount,tokenAddress, bridgeAddress
 
     return receipt;
   } catch (error) {
-    console.log(error);
+    console.error("Error increasing bridge allowance:", error);
   }
 };
 
@@ -189,11 +182,11 @@ export const getTokenPrice = async (amount = 1) => {
 };
 export const getPrice = async (address0, address1) => {
   const pairAddress = getPairAddress([address0, address1]);
-  console.log(pairAddress);
-  console.log(address0, address1);
 
   try {
     const pairContractObj = await pairContract(pairAddress);
+    console.log(pairContractObj,'eskere');
+    
     const token0 = await pairContractObj.token0();
     const token1 = await pairContractObj.token1();
     const path = [token0, token1];
@@ -514,11 +507,7 @@ export const mintOpToken = async (amount, address, nonce,account) => {
   // const secretHash = process.env.NEXT_PUBLIC_SECRET_HASH;
 
   // const hexvalue = ethers.utils.formatBytes32String(secretHash);
-
-
   const amountFormatted = ethers.utils.parseUnits(amount.toString(), 18);
-
-
   try {
     const signer = new ethers.providers.Web3Provider(
       window.ethereum
