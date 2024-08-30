@@ -27,7 +27,7 @@ const Header = () => {
       <div className="flex items-center justify-between bg-[#2D242F] ">
         <div className="flex flex-col my-4 bg-[#2D242F] w-full justify-between px-2 md:px-16">
           <div className="flex items-center justify-between ">
-            <img src="./mtb.png" className="h-12" />
+            <img src="./openvino-logo.png" className="h-12" />
 
             {/* <div className="hidden md:flex md:px-4">
               <NavItems />

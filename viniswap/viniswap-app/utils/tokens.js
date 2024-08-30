@@ -7,6 +7,14 @@ export const tokens = [
     bridge: "0xAd24c3FC301EDBd1668Ed083AAc5C9865583121E",
     bridgeOP: "0x20b673f6e08d3C9d0657d420B848f3Ef941e8267",
   },
+  {
+    name: "TTO",
+    address: "0xc53c298c1f2e85579d4fDf7aFaC2b9429e9DdE58",
+    network: "mainnet",
+    image: "/tokens/mtb24.svg",
+    bridge: "0xAd24c3FC301EDBd1668Ed083AAc5C9865583121E",
+    bridgeOP: "0x20b673f6e08d3C9d0657d420B848f3Ef941e8267",
+  },
 
   // {
   //     name: 'MTB19',

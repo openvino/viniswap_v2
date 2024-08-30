@@ -3,7 +3,8 @@ import Selector from "./Selector";
 import { getPrice, getTokenPrice } from "../utils/queries";
 import { getCoinAddress } from "../utils/SupportedCoins";
 import { ethers, BigNumber } from "ethers";
-import { toEth } from "../utils/ether-utils";
+import { toEth, toWei } from "../utils/ether-utils";
+import { defaultSlippage } from "../utils/swap-utils";
 
 const SwapField = ({ fieldProps }) => {
   const {
@@ -17,10 +18,13 @@ const SwapField = ({ fieldProps }) => {
     price,
     srcToken,
     destToken,
+    slippage,
   } = fieldProps;
 
   const populateCounterPart = async ({ inputValue }) => {
     const { path, token0Reserves, token1Reserves } = price;
+    console.log(price);
+
     if (inputValue === "") {
       setCounterPart("");
       return;
@@ -62,9 +66,14 @@ const SwapField = ({ fieldProps }) => {
     }
 
     if (CurrentTokenAddress === path[1]) {
-      const outputAmount = token0ReservesBN
-        .mul(inputAmountBN)
-        .div(token1ReservesBN.add(inputAmountBN)); //Uniswap's formula
+      // const outputAmount = token0ReservesBN
+      //   .mul(inputAmountBN)
+      //   .div(token1ReservesBN.add(inputAmountBN)); //Uniswap's formula
+      // setCounterPart(toEth(outputAmount));
+      const outputAmount = toWei(
+        (token0Reserves * inputValue) / (token1Reserves + inputValue)
+      );
+
       setCounterPart(toEth(outputAmount));
       console.log(
         srcToken,

@@ -4,6 +4,7 @@ import {
   mtb24Contract,
   wethContract,
   pairContract,
+  erc20Contract,
 } from "./contract";
 import { toEth, toWei } from "./ether-utils";
 import { getCoinName } from "./SupportedCoins";
@@ -11,15 +12,19 @@ import { bridgeAbi, mtb24ABI, wethABI } from "./abi";
 import { getPairAddress } from "./whitelistedPools";
 
 const WETH_ADDRESS = process.env.NEXT_PUBLIC_WETH_ADDRESS;
-const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_MTB24_ADDRESS;
+// const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_MTB24_ADDRESS;
+const TOKEN_ADDRESS = "0xc53c298c1f2e85579d4fDf7aFaC2b9429e9DdE58";
 
 export const tokenBalance = async (tokenAddress = TOKEN_ADDRESS) => {
   try {
-    const tokenContractObj = await mtb24Contract(tokenAddress);
+    const tokenContractObj = await erc20Contract(tokenAddress);
+    console.log(tokenContractObj);
     const routerObj = await routerContract();
+    console.log(routerObj);
     const walletAddress = await routerObj.signer.getAddress();
+    console.log(walletAddress);
 
-    const name = await tokenContractObj.name();
+    // const name = await tokenContractObj.name();
     const balance = await tokenContractObj.balanceOf(walletAddress);
     const formatedBalance = toEth(balance).toString();
     console.log(name);
@@ -90,18 +95,27 @@ export const wethAllowance = async () => {
   }
 };
 
-
-export const increaseBridgeAllowance = async (amount,tokenAddress, bridgeAddress) => {
+export const increaseBridgeAllowance = async (
+  amount,
+  tokenAddress,
+  bridgeAddress
+) => {
   try {
-
     const signer = new ethers.providers.Web3Provider(
       window.ethereum
     ).getSigner();
 
-    const tokenContractObj = new ethers.Contract(tokenAddress, mtb24ABI, signer);
+    const tokenContractObj = new ethers.Contract(
+      tokenAddress,
+      mtb24ABI,
+      signer
+    );
 
-    const bridgeContractObj = new ethers.Contract(bridgeAddress, bridgeAbi, signer);
-   
+    const bridgeContractObj = new ethers.Contract(
+      bridgeAddress,
+      bridgeAbi,
+      signer
+    );
 
     const approvalTx = await tokenContractObj.approve(
       bridgeContractObj.address,
@@ -229,6 +243,7 @@ export const swapTokensToWeth = async (tokenAmount) => {
     console.error("No se pudo obtener el contrato del router");
     return;
   }
+  console.log("router address:", routerObj.address);
 
   const signer = await routerObj.provider.getSigner();
   const initialTokenBalance = await tokenBalance();
@@ -492,7 +507,6 @@ export const transferTokenToOP = async (amount, address) => {
     ).getSigner();
     const bridgeContractObj = new ethers.Contract(address, bridgeAbi, signer);
 
-
     const tx = await bridgeContractObj.burn(address, amountFormatted);
     const receipt = await tx.wait();
     console.log("Tokens burned and transferred", receipt);
@@ -505,19 +519,14 @@ export const transferTokenToOP = async (amount, address) => {
     console.error("Token transfer error", error);
     throw error;
   }
+};
 
-}
-
-
-export const mintOpToken = async (amount, address, nonce,account) => {
-
+export const mintOpToken = async (amount, address, nonce, account) => {
   // const secretHash = process.env.NEXT_PUBLIC_SECRET_HASH;
 
   // const hexvalue = ethers.utils.formatBytes32String(secretHash);
 
-
   const amountFormatted = ethers.utils.parseUnits(amount.toString(), 18);
-
 
   try {
     const signer = new ethers.providers.Web3Provider(
@@ -533,7 +542,4 @@ export const mintOpToken = async (amount, address, nonce,account) => {
     console.error("Token mint error", error);
     throw error;
   }
-
-}
-
-
+};

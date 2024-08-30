@@ -1,5 +1,13 @@
 import { ethers } from "ethers";
-import { bridgeAbi, factoryABI, mtb24ABI, pairABI, routerABI, wethABI } from "./abi";
+import {
+  bridgeAbi,
+  erc20ABI,
+  factoryABI,
+  mtb24ABI,
+  pairABI,
+  routerABI,
+  wethABI,
+} from "./abi";
 
 export const mtb24Contract = async (address) => {
   if (typeof window !== "undefined") {
@@ -8,6 +16,17 @@ export const mtb24Contract = async (address) => {
     if (ethereum) {
       const signer = provider.getSigner();
       const contractReader = new ethers.Contract(address, mtb24ABI, signer);
+      return contractReader;
+    }
+  }
+};
+export const erc20Contract = async (address) => {
+  if (typeof window !== "undefined") {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const { ethereum } = window;
+    if (ethereum) {
+      const signer = provider.getSigner();
+      const contractReader = new ethers.Contract(address, erc20ABI, signer);
       return contractReader;
     }
   }
@@ -93,7 +112,6 @@ export const pairContract = async (pairAddress) => {
   }
 };
 
-
 export const mtbContracts = async (address) => {
   if (typeof window !== "undefined") {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -116,4 +134,4 @@ export const bridgeContract = async (address) => {
       return contractReader;
     }
   }
-}
+};

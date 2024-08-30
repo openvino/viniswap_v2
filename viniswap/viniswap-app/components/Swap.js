@@ -82,6 +82,7 @@ const Swap = () => {
       getCoinAddress(srcToken),
       getCoinAddress(destToken)
     );
+    console.log(isWhiteListed);
 
     if (!address) setSwapBtnText(CONNECT_WALLET);
     else if (chain?.id !== 11155420) setSwapBtnText(SWITCH_NETWORK);
@@ -257,6 +258,7 @@ const Swap = () => {
             price,
             srcToken,
             destToken,
+            slippage,
           }}
         />
 
@@ -274,6 +276,7 @@ const Swap = () => {
             price,
             srcToken,
             destToken,
+            slippage,
           }}
         />
       </div>
