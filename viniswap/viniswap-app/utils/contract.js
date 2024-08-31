@@ -14,14 +14,15 @@ export const getProvider = () => {
 const getSignerOrProvider = async (provider) => {
   if (provider.getSigner && window.ethereum) {
     try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
       if (accounts.length === 0) {
-        throw new Error("No accounts available. Please connect your wallet.");
+        return new ethers.providers.JsonRpcProvider(`https://optimism-sepolia.infura.io/v3/${INFURA_PROJECT_ID}`);
+      } else {
+        return provider.getSigner();
       }
-      return provider.getSigner();
     } catch (error) {
-      console.error("Wallet not connected or access denied", error);
-      throw new Error("Please connect your wallet to proceed.");
+      console.error("Error while trying to get signer or connect to RPC provider", error);
+      throw new Error("Error processing the request.");
     }
   }
   return provider;
@@ -30,7 +31,7 @@ const getSignerOrProvider = async (provider) => {
 export const mtb24Contract = async (address) => {
   const provider = getProvider();
   console.log(provider, 'provider');
-  
+
   const signerOrProvider = await getSignerOrProvider(provider);
   return new ethers.Contract(address, mtb24ABI, signerOrProvider);
 };

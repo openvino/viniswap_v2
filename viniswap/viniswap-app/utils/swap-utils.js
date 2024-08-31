@@ -1,6 +1,6 @@
 import { DEFAULT_VALUE, WETH } from "./SupportedCoins";
 import toast, { Toaster } from "react-hot-toast";
-
+import { ethers } from "ethers";
 export const INCREASE_ALLOWANCE = "Increase allowance";
 export const ENTER_AMOUNT = "Enter an amount";
 export const INVALID_AMOUNT = "Invalid amount";
@@ -35,3 +35,19 @@ export const getSwapBtnClassName = (swapBtnText) => {
 
   return className;
 };
+const ALLOWED_SLIPPAGE = ethers.BigNumber.from(200);
+export function calculateSlippageBounds(value) {
+  const offset = value.mul(ALLOWED_SLIPPAGE).div(ethers.BigNumber.from(10000));
+  const minimum = value.sub(offset);
+  const maximum = value.add(offset);
+  return {
+    minimum: minimum.lt(ethers.constants.Zero)
+      ? ethers.constants.Zero
+      : minimum,
+    maximum: maximum.gt(ethers.constants.MaxUint256)
+      ? ethers.constants.MaxUint256
+      : maximum,
+  };
+}
+
+// 
