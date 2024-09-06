@@ -182,7 +182,8 @@ export const getTokenPrice = async (amount = 1) => {
 };
 export const getPrice = async (address0, address1) => {
   const pairAddress = getPairAddress([address0, address1]);
-
+  console.log(pairAddress, 'eskereee');
+  
   try {
     const pairContractObj = await pairContract(pairAddress);
     console.log(pairContractObj,'eskere');

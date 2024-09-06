@@ -52,7 +52,7 @@ const useSwaps = () => {
       }
     };
 
-    checkNetwork();
+    // checkNetwork();
     const fetchPrice = async (inToken, outToken) => {
       try {
         setLoading(true)

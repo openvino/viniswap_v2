@@ -47,8 +47,30 @@ const sepolia = {
     },
   },
 };
+
+const opMainnet = {
+  id: 10,
+  name: "Optimism",
+  network: "optimism",
+  nativeCurrency: { 
+    name: "Ether", 
+    symbol: "ETH", 
+    decimals: 18 
+  },
+  rpcUrls: {
+    public: "https://mainnet.optimism.io",
+  },
+  blockExplorers: {
+    default: {
+      name: "OptimisticEtherscan",
+      url: "https://optimistic.etherscan.io",
+    },
+  },
+}
+
+
 const { provider, chains } = configureChains(
-  [OPsepolia, sepolia],
+  [OPsepolia, sepolia,opMainnet],
   [
     alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY }),
     jsonRpcProvider({

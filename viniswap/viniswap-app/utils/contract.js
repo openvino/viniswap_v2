@@ -1,13 +1,13 @@
 import { ethers } from "ethers";
 import { bridgeAbi, factoryABI, mtb24ABI, pairABI, routerABI, wethABI } from "./abi";
 
-const INFURA_PROJECT_ID = '2UrrpLL3Im3ATvqSRLI8EEwB25F';
+const INFURA_PROJECT_ID = 'ce8d632a5fdf485ea8e0f041b48c3f69';
 
 export const getProvider = () => {
   if (typeof window !== "undefined" && window.ethereum) {
     return new ethers.providers.Web3Provider(window.ethereum);
   } else {
-    return new ethers.providers.JsonRpcProvider(`https://optimism-sepolia.infura.io/v3/${INFURA_PROJECT_ID}`);
+    return new ethers.providers.JsonRpcProvider(`https://optimism-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`);
   }
 };
 
@@ -16,7 +16,7 @@ const getSignerOrProvider = async (provider) => {
     try {
       const accounts = await window.ethereum.request({ method: 'eth_accounts' });
       if (accounts.length === 0) {
-        return new ethers.providers.JsonRpcProvider(`https://optimism-sepolia.infura.io/v3/${INFURA_PROJECT_ID}`);
+        return new ethers.providers.JsonRpcProvider(`https://optimism-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`);
       } else {
         return provider.getSigner();
       }

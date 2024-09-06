@@ -32,9 +32,9 @@ const Bridge = () => {
 
   useEffect(() => {
     const checkNetwork = async () => {
-      if (chain?.id !== 11155111 && steps !== "step3" && steps !== "step4") {
+      if (chain?.id !== 10 && steps !== "step3" && steps !== "step4") {
         try {
-          await switchNetwork(11155111);
+          await switchNetwork(10);
         } catch (error) {
           toast.error("Please switch to the Sepolia network");
         }
