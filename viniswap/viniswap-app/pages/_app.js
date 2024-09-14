@@ -10,8 +10,7 @@ import {
   midnightTheme,
 } from "@rainbow-me/rainbowkit";
 
-import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
-import { infuraProvider } from "wagmi/providers/infura";
+import { configureChains, createClient, WagmiConfig } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { jsonRpcProvider } from "@wagmi/core/providers/jsonRpc";
 import Modal from "react-modal";
@@ -70,7 +69,7 @@ const opMainnet = {
 
 
 const { provider, chains } = configureChains(
-  [OPsepolia, sepolia,opMainnet],
+  [opMainnet],
   [
     alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY }),
     jsonRpcProvider({

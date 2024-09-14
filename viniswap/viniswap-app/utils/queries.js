@@ -20,6 +20,8 @@ export const tokenBalance = async (tokenAddress = TOKEN_ADDRESS) => {
     const tokenContractObj = new ethers.Contract(tokenAddress, mtb24ABI, signerOrProvider);
 
     if (signerOrProvider.getAddress) {
+      console.log(signerOrProvider.getAddress);
+      
       const walletAddress = await signerOrProvider.getAddress();
       const balance = await tokenContractObj.balanceOf(walletAddress);
       return toEth(balance).toString();
@@ -140,7 +142,7 @@ export const increaseWethAllowance = async (amount) => {
     const routerObj = await routerContract();
     const wethContractObj = await wethContract(WETH_ADDRESS);
     const walletAddress = await routerObj.signer.getAddress();
-    console.log(walletAddress);
+
     const name = await wethContractObj.name();
     const totalAmount = await wethBalance();
     console.log(totalAmount);
@@ -186,12 +188,14 @@ export const getPrice = async (address0, address1) => {
   
   try {
     const pairContractObj = await pairContract(pairAddress);
-    console.log(pairContractObj,'eskere');
     
     const token0 = await pairContractObj.token0();
     const token1 = await pairContractObj.token1();
     const path = [token0, token1];
     const poolReserves = await pairContractObj.getReserves();
+
+    console.log(poolReserves, 'poolReserves');
+    
 
     const token0Reserves = toEth(poolReserves[0]);
     const token1Reserves = toEth(poolReserves[1]);

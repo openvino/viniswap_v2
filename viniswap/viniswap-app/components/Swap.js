@@ -86,7 +86,7 @@ const Swap = () => {
     );
 
     if (!address) setSwapBtnText(CONNECT_WALLET);
-    else if (chain?.id !== 11155420) setSwapBtnText(SWITCH_NETWORK);
+    else if (chain?.id !== 10) setSwapBtnText(SWITCH_NETWORK);
     else if (
       srcToken === DEFAULT_VALUE ||
       destToken === DEFAULT_VALUE ||
@@ -109,39 +109,34 @@ const Swap = () => {
     setInputValue("");
     setOutputValue("");
   }, []);
+
+
   const performSwap = async () => {
     try {
       setTxPending(true);
       let receipt;
-      const inputValueBN = ethers.utils.parseUnits(inputValue.toString(), 18);
-      const outputValueBN = ethers.utils.parseUnits(outputValue.toString(), 18);
 
-      const { minimum: minOutputValue, maximum: maxOutputValue } = calculateSlippageBounds(outputValueBN);
-      const { minimum: minInputValue, maximum: maxInputValue } = calculateSlippageBounds(inputValueBN);
-  
       if (srcToken === WETH && destToken !== WETH) {
         setTransactionMessage(
           (prev) => `${prev}done.<br />Step 4/4: Performing swap...`
         );
-  
-        receipt = await swapWethToTokens(maxOutputValue.toString());
+        receipt = await swapWethToTokens(outputValue);
         if (!receipt) {
           setTxPending(false);
           notifyError("Transaction failed");
           return;
         }
         setTxPending(false);
-        notifySuccess("Swap completed successfully!");
+        notifySuccess("Swap completed succesfully!");
         return;
       } else if (srcToken !== WETH && destToken === WETH) {
-     
-        receipt = await swapTokensToWeth(maxInputValue.toString());
+        receipt = await swapTokensToWeth(inputValue);
         if (!receipt) {
           setTxPending(false);
           notifyError("Transaction failed");
           return;
         }
-        console.log("swap successful", receipt);
+        console.log("swap succesful", receipt);
         setTransactionMessage(
           (prev) => `${prev}done.<br />Step 3/3: Withdrawing eth...`
         );
@@ -154,12 +149,12 @@ const Swap = () => {
           return;
         }
         setTransactionMessage((prev) => `${prev}done.`);
-        console.log("weth withdrawn successfully", withdrawReceipt);
+        console.log("weth withdrawn succesfully", withdrawReceipt);
         setTxPending(false);
         setInputValue("");
         setOutputValue("");
       }
-  
+
       setTxPending(false);
       if (receipt && !receipt.hasOwnProperty("transactionHash")) {
         notifyError(receipt);
@@ -172,55 +167,51 @@ const Swap = () => {
     }
     setTxPending(false);
   };
-  
+
   const handleSwap = async () => {
     try {
-      // Calcular  slippage 
-      const inputValueBN = ethers.utils.parseUnits(inputValue.toString(), 18);
-      const { minimum: minAmount, maximum: maxAmount } = calculateSlippageBounds(inputValueBN);
-  
       if (srcToken === WETH && destToken !== WETH) {
         console.log("wrapping " && inputValue && " eth");
         setTransactionMessage(`Step 1/4: Depositing ETH...`);
         setTxPending(true);
-  
-        const wrapReceipt = await wrapEth(inputValue); // Aquí usamos el valor de entrada original
-        console.log("eth wrapped successfully", wrapReceipt);
-  
+
+        const wrapReceipt = await wrapEth(inputValue * (1 + slippage / 100));
+        console.log("eth wrapped succesfully", wrapReceipt);
+
         const allowance = await wethAllowance();
         console.log(allowance, inputValue);
         setTransactionMessage(
           (prev) => `${prev}done.<br />Step 2/4: Granting WETH allowance...`
         );
-      
-        const receipt = await increaseWethAllowance(maxAmount.toString());
-  
+        const receipt = await increaseWethAllowance(
+          (inputValue * (100 + slippage)) / 100
+        );
+
         await receipt.wait();
         console.log(receipt);
-  
+
         setTxPending(false);
-  
-        performSwap(); 
+
+        performSwap();
       } else if (srcToken !== WETH && destToken === WETH) {
         setTxPending(true);
         setTransactionMessage(`Step 1/3: Granting token allowance...`);
         const allowance = await tokenAllowance();
         console.log(allowance, inputValue);
-  
-   
-        const receipt = await increaseTokenAllowance(maxAmount.toString());
+
+        const receipt = await increaseTokenAllowance(inputValue);
         if (!receipt) {
           notifyError("Transaction failed");
           setTxPending(false);
           return;
         }
         console.log(receipt);
-  
+
         setTransactionMessage(
           (prev) => `${prev}done.<br />Step 2/3: Performing swap...`
         );
-  
-        performSwap(); // Asegúrate de manejar el slippage también en `performSwap`
+
+        performSwap();
       }
     } catch (error) {
       notifyError("Transaction failed");

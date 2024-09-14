@@ -7,16 +7,19 @@ export const getProvider = () => {
   if (typeof window !== "undefined" && window.ethereum) {
     return new ethers.providers.Web3Provider(window.ethereum);
   } else {
-    return new ethers.providers.JsonRpcProvider(`https://optimism-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`);
+    // return new ethers.providers.JsonRpcProvider(`https://optimism-sepolia.infura.io/v3/${INFURA_PROJECT_ID}`);
+    return new ethers.providers.JsonRpcProvider(`https://optimism-sepolia.mainnet.io/v3/${INFURA_PROJECT_ID}`);
   }
 };
 
-const getSignerOrProvider = async (provider) => {
+export const getSignerOrProvider = async (provider) => {
   if (provider.getSigner && window.ethereum) {
     try {
       const accounts = await window.ethereum.request({ method: 'eth_accounts' });
       if (accounts.length === 0) {
-        return new ethers.providers.JsonRpcProvider(`https://optimism-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`);
+        // return new ethers.providers.JsonRpcProvider(`https://optimism-sepolia.infura.io/v3/${INFURA_PROJECT_ID}`);
+        return new ethers.providers.JsonRpcProvider(`https://optimism-sepolia.mainnet.io/v3/${INFURA_PROJECT_ID}`);
+
       } else {
         return provider.getSigner();
       }
