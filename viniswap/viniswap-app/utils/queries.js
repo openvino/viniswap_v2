@@ -7,7 +7,7 @@ import {
 } from "./contract";
 import { toEth, toWei } from "./ether-utils";
 import { getCoinName } from "./SupportedCoins";
-import { bridgeAbi, mtb24ABI, wethABI } from "./abi";
+import { bridgeAbi, mtb24ABI, pairABI, wethABI } from "./abi";
 import { getPairAddress } from "./whitelistedPools";
 const WETH_ADDRESS = process.env.NEXT_PUBLIC_WETH_ADDRESS;
 const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_MTB24_ADDRESS;
@@ -17,11 +17,15 @@ export const tokenBalance = async (tokenAddress = TOKEN_ADDRESS) => {
   try {
     const provider = getProvider();
     const signerOrProvider = await getSignerOrProvider(provider);
-    const tokenContractObj = new ethers.Contract(tokenAddress, mtb24ABI, signerOrProvider);
+    const tokenContractObj = new ethers.Contract(
+      tokenAddress,
+      mtb24ABI,
+      signerOrProvider
+    );
 
     if (signerOrProvider.getAddress) {
-      console.log(signerOrProvider.getAddress);
-      
+      // console.log(signerOrProvider.getAddress);
+
       const walletAddress = await signerOrProvider.getAddress();
       const balance = await tokenContractObj.balanceOf(walletAddress);
       return toEth(balance).toString();
@@ -35,7 +39,11 @@ export const wethBalance = async () => {
   try {
     const provider = getProvider();
     const signerOrProvider = await getSignerOrProvider(provider);
-    const wethContractObj = new ethers.Contract(WETH_ADDRESS, wethABI, signerOrProvider);
+    const wethContractObj = new ethers.Contract(
+      WETH_ADDRESS,
+      wethABI,
+      signerOrProvider
+    );
 
     if (signerOrProvider.getAddress) {
       const walletAddress = await signerOrProvider.getAddress();
@@ -46,7 +54,6 @@ export const wethBalance = async () => {
     console.error("Error fetching WETH balance:", error);
   }
 };
-
 
 export const tokenAllowance = async () => {
   try {
@@ -90,13 +97,24 @@ export const wethAllowance = async () => {
   }
 };
 
-
-export const increaseBridgeAllowance = async (amount, tokenAddress, bridgeAddress) => {
+export const increaseBridgeAllowance = async (
+  amount,
+  tokenAddress,
+  bridgeAddress
+) => {
   try {
     const provider = getProvider();
     const signerOrProvider = await getSignerOrProvider(provider);
-    const tokenContractObj = new ethers.Contract(tokenAddress, mtb24ABI, signerOrProvider);
-    const bridgeContractObj = new ethers.Contract(bridgeAddress, bridgeAbi, signerOrProvider);
+    const tokenContractObj = new ethers.Contract(
+      tokenAddress,
+      mtb24ABI,
+      signerOrProvider
+    );
+    const bridgeContractObj = new ethers.Contract(
+      bridgeAddress,
+      bridgeAbi,
+      signerOrProvider
+    );
 
     const approvalTx = await tokenContractObj.approve(
       bridgeContractObj.address,
@@ -184,18 +202,17 @@ export const getTokenPrice = async (amount = 1) => {
 };
 export const getPrice = async (address0, address1) => {
   const pairAddress = getPairAddress([address0, address1]);
-  console.log(pairAddress, 'eskereee');
-  
+  console.log(pairAddress, "eskereee");
+
   try {
     const pairContractObj = await pairContract(pairAddress);
-    
+
     const token0 = await pairContractObj.token0();
     const token1 = await pairContractObj.token1();
     const path = [token0, token1];
     const poolReserves = await pairContractObj.getReserves();
 
-    console.log(poolReserves, 'poolReserves');
-    
+    console.log(poolReserves, "poolReserves");
 
     const token0Reserves = toEth(poolReserves[0]);
     const token1Reserves = toEth(poolReserves[1]);
@@ -258,46 +275,75 @@ export const swapTokensToWeth = async (tokenAmount) => {
 };
 
 export const swapWethToTokens = async (tokenAmount) => {
-  const exactTokenAmount = Math.floor(tokenAmount);
-  console.log(exactTokenAmount);
+  console.log("HOLA");
+  //TODO recibir por parámetro token de entrada y token de salida y slipagge
+  const pairAddress = getPairAddress([TOKEN_ADDRESS, WETH_ADDRESS]);
+  console.log(pairAddress, "pairAddress");
+
+  const pairContractObj = await pairContract(pairAddress);
+  const reserves = await pairContractObj.getReserves();
+  console.log(reserves, "reserves");
+
+  const reserveOut = reserves[0];
+  const reserveIn = reserves[1];
+
+  console.log(toWei(toEth(reserveOut)), toWei(toEth(reserveIn)));
+
+  const routerObj = await routerContract();
+
+  const amount = ethers.BigNumber.from(toWei(tokenAmount));
+  const amountIn = await routerObj.getAmountIn(amount, reserveIn, reserveOut); // MAGIC
+  console.log(toEth(amountIn), "amountIn");
+
+  const amountSlippage = amountIn.mul(120).div(100); // + slipagge hardcodeado de 20%
+  const finalAmountBN = ethers.utils.parseUnits(
+    amountSlippage.toString(),
+    "wei"
+  );
+
+  const finalAmount = finalAmountBN.toString(); //pasado a wei
+  console.log("AAAAAAAAAAAAAAAAAAAAAAA", finalAmount);
+
+  console.log(finalAmountBN.toString(), "finalAmountInWei");
+
+  const depositReceipt = await wrapEth(toEth(finalAmount));
+  console.log("Deposit receipt: ", depositReceipt);
+
+  await increaseWethAllowance(toEth(finalAmountBN.toString()));
+
   const allowanceStatus = await wethAllowance();
   console.log("Allowance status: ", allowanceStatus);
-  const routerObj = await routerContract();
-  if (!routerObj) {
-    console.error("No se pudo obtener el contrato del router");
-    return;
-  }
 
   const signer = await routerObj.provider.getSigner();
-  const initialTokenBalance = await tokenBalance();
   const initialWethBalance = await wethBalance();
-  console.log(initialTokenBalance, initialWethBalance);
+  console.log(toEth(finalAmount));
 
   try {
+    const gasLimit = ethers.utils.hexlify(500000);
     const tx = await routerObj.connect(signer).swapTokensForExactTokens(
-      toWei(exactTokenAmount.toString()),
-
-      toWei(initialWethBalance), // Cantidad mínima de tokens de salida
-      [
-        // Ruta de tokens (de TOKEN_ADDRESS a WETH_ADDRESS)
-        WETH_ADDRESS,
-        TOKEN_ADDRESS,
-      ],
-      signer.getAddress(), // Dirección del destinatario de los tokens de salida
-      Math.floor(Date.now() / 1000) + 60 * 10 // Plazo de validez de la transacción
+      toWei(tokenAmount),
+      toWei(initialWethBalance), //esto no tiene mucho sentido, capaz hay que poner 0
+      [WETH_ADDRESS, TOKEN_ADDRESS],
+      signer.getAddress(),
+      Math.floor(Date.now() / 1000) + 60 * 10,
+      { gasLimit }
     );
 
     const receipt = await tx.wait();
     console.log(receipt);
+
     const afterSwapTokenBalance = await tokenBalance();
     const afterSwapWethBalance = await wethBalance();
+
     console.log(afterSwapTokenBalance, afterSwapWethBalance);
+
     return receipt;
   } catch (error) {
     console.log(error);
   }
 };
 
+swapWethToTokens(200);
 export const lpTokenBalance = async (pairAddress) => {
   try {
     const pairContractObj = await pairContract(pairAddress);
@@ -426,6 +472,8 @@ export const lpTokenAllowance = async ({ liquidityAmount, address }) => {
 };
 
 export const wrapEth = async (amount) => {
+  console.log(amount);
+
   if (!amount > 0) return;
   try {
     const routerObj = await routerContract();
@@ -490,7 +538,6 @@ export const transferTokenToOP = async (amount, address) => {
     ).getSigner();
     const bridgeContractObj = new ethers.Contract(address, bridgeAbi, signer);
 
-
     const tx = await bridgeContractObj.burn(address, amountFormatted);
     const receipt = await tx.wait();
     console.log("Tokens burned and transferred", receipt);
@@ -503,12 +550,9 @@ export const transferTokenToOP = async (amount, address) => {
     console.error("Token transfer error", error);
     throw error;
   }
+};
 
-}
-
-
-export const mintOpToken = async (amount, address, nonce,account) => {
-
+export const mintOpToken = async (amount, address, nonce, account) => {
   // const secretHash = process.env.NEXT_PUBLIC_SECRET_HASH;
 
   // const hexvalue = ethers.utils.formatBytes32String(secretHash);
@@ -527,7 +571,4 @@ export const mintOpToken = async (amount, address, nonce,account) => {
     console.error("Token mint error", error);
     throw error;
   }
-
-}
-
-
+};

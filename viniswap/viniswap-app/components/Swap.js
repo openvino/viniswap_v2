@@ -72,7 +72,7 @@ const Swap = () => {
     destTokenObj,
     price,
     setPrice,
-    loading
+    loading,
   } = useSwaps();
 
   const [sourceValue, setSourceValue] = useState();
@@ -109,7 +109,6 @@ const Swap = () => {
     setInputValue("");
     setOutputValue("");
   }, []);
-
 
   const performSwap = async () => {
     try {
@@ -260,8 +259,6 @@ const Swap = () => {
             price,
             srcToken,
             destToken,
-
-
           }}
         />
 
