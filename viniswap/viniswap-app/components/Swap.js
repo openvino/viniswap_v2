@@ -86,7 +86,7 @@ const Swap = () => {
     );
 
     if (!address) setSwapBtnText(CONNECT_WALLET);
-    else if (chain?.id !== 10) setSwapBtnText(SWITCH_NETWORK);
+    else if (chain?.id !== 11155420) setSwapBtnText(SWITCH_NETWORK);
     else if (
       srcToken === DEFAULT_VALUE ||
       destToken === DEFAULT_VALUE ||
@@ -171,6 +171,8 @@ const Swap = () => {
     try {
       if (srcToken === WETH && destToken !== WETH) {
         console.log("wrapping " && inputValue && " eth");
+        //TODO calcular el precio
+
         setTransactionMessage(`Step 1/4: Depositing ETH...`);
         setTxPending(true);
 

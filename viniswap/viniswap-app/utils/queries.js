@@ -202,7 +202,6 @@ export const getTokenPrice = async (amount = 1) => {
 };
 export const getPrice = async (address0, address1) => {
   const pairAddress = getPairAddress([address0, address1]);
-  console.log(pairAddress, "eskereee");
 
   try {
     const pairContractObj = await pairContract(pairAddress);
@@ -279,6 +278,8 @@ export const swapWethToTokens = async (tokenAmount) => {
   //TODO recibir por parámetro token de entrada y token de salida y slipagge
   const pairAddress = getPairAddress([TOKEN_ADDRESS, WETH_ADDRESS]);
   console.log(pairAddress, "pairAddress");
+  const price = await getPrice(TOKEN_ADDRESS, WETH_ADDRESS);
+  console.log(price, "price");
 
   const pairContractObj = await pairContract(pairAddress);
   const reserves = await pairContractObj.getReserves();
@@ -343,7 +344,7 @@ export const swapWethToTokens = async (tokenAmount) => {
   }
 };
 
-swapWethToTokens(200);
+swapWethToTokens(2);
 export const lpTokenBalance = async (pairAddress) => {
   try {
     const pairContractObj = await pairContract(pairAddress);

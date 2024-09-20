@@ -52,29 +52,27 @@ const useSwaps = () => {
       }
     };
 
-    // checkNetwork();
+    checkNetwork();
     const fetchPrice = async (inToken, outToken) => {
       try {
-        setLoading(true)
+        setLoading(true);
         console.log(inToken, outToken);
         const address0 = getCoinAddress(inToken);
         const address1 = getCoinAddress(outToken);
         console.log(address0, address1);
         const relativePrices = await getPrice(address0, address1);
-     
-      
+
         setPrice(relativePrices);
       } catch (error) {
-        toast.error(error.message)
+        toast.error(error.message);
 
-        throw new Error('Error')
-      }finally {
-        setLoading(false)
+        throw new Error("Error");
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (srcToken && destToken )
-      fetchPrice(srcToken, destToken);
+    if (srcToken && destToken) fetchPrice(srcToken, destToken);
   }, [srcToken, destToken, chain]);
 
   return {
@@ -102,7 +100,7 @@ const useSwaps = () => {
     destTokenObj,
     price,
     setPrice,
-    loading
+    loading,
   };
 };
 

@@ -51,10 +51,10 @@ const opMainnet = {
   id: 10,
   name: "Optimism",
   network: "optimism",
-  nativeCurrency: { 
-    name: "Ether", 
-    symbol: "ETH", 
-    decimals: 18 
+  nativeCurrency: {
+    name: "Ether",
+    symbol: "ETH",
+    decimals: 18,
   },
   rpcUrls: {
     public: "https://mainnet.optimism.io",
@@ -65,16 +65,15 @@ const opMainnet = {
       url: "https://optimistic.etherscan.io",
     },
   },
-}
-
+};
 
 const { provider, chains } = configureChains(
-  [opMainnet],
+  [OPsepolia],
   [
     alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY }),
     jsonRpcProvider({
-      rpc: (chain) => ({ http: chain.rpcUrls.default })
-    })
+      rpc: (chain) => ({ http: chain.rpcUrls.default }),
+    }),
   ]
 );
 
