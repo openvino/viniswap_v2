@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
-import NavItems from "./NavItems";
 import toast, { Toaster } from "react-hot-toast";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
-import TokenBalance from "./TokenBalance";
-import { mtb24Contract, wethContract } from "../utils/contract";
 
 const Header = () => {
   const [tokenBalComp, setTokenBalComp] = useState();
