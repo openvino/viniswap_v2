@@ -2,12 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { DEFAULT_VALUE, WETH, getCoinAddress } from "../utils/SupportedCoins";
 import { ENTER_AMOUNT, defaultSlippage } from "../utils/swap-utils";
 import { getPrice, getTokenPrice } from "../utils/queries";
-import { useAccount, useNetwork } from "wagmi";
+
 import toast from "react-hot-toast";
+import { useActiveAccount } from "thirdweb/react";
+import { optimismSepolia } from "thirdweb/chains";
 
 const useSwaps = () => {
-  const { address } = useAccount();
-  const { chain } = useNetwork();
+  const account = useActiveAccount();
+  // const { chain } = useNetwork();
+  const chain = optimismSepolia;
   const [srcToken, setSrcToken] = useState(WETH);
   const [destToken, setDestToken] = useState(DEFAULT_VALUE);
   const [inputValue, setInputValue] = useState();
@@ -20,7 +23,11 @@ const useSwaps = () => {
   const inValue = useState();
   const outValue = useState();
   const [loading, setLoading] = useState(false);
+  const [address, setAddress] = useState(null);
 
+  useEffect(() => {
+    if (account) setAddress(account?.address);
+  }, [account]);
   const isReversed = useState(false);
 
   const srcTokenObj = {
@@ -101,6 +108,7 @@ const useSwaps = () => {
     price,
     setPrice,
     loading,
+    address,
   };
 };
 

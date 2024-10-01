@@ -1,7 +1,7 @@
 import { mtbContracts } from "../utils/contract";
 import { toEth } from "../utils/ether-utils";
 import { useState, useEffect } from "react";
-import { useAccount, useNetwork } from "wagmi";
+
 const useBridge = (tokenAddress, account) => {
   const { chain } = useNetwork();
   const [balance, setBalance] = useState(0);

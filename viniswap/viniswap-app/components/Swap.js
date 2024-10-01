@@ -13,43 +13,33 @@ import {
 import {
   CONNECT_WALLET,
   ENTER_AMOUNT,
-  INCREASE_ALLOWANCE,
   SELECT_PAIR,
   SWAP,
   SWITCH_NETWORK,
   getSwapBtnClassName,
   notifyError,
   notifySuccess,
-  populateInputValue,
-  populateOutputValue,
 } from "../utils/swap-utils";
-import { CogIcon, ArrowSmDownIcon } from "@heroicons/react/outline";
+import { CogIcon } from "@heroicons/react/outline";
 import { CgArrowsExchangeV } from "react-icons/cg";
-import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
+
 import SwapField from "./SwapField";
 import TransactionStatus from "./TransactionStatus";
 
-import {
-  DEFAULT_VALUE,
-  WETH,
-  MTB24,
-  getCoinAddress,
-} from "../utils/SupportedCoins";
-import { toEth, toWei } from "../utils/ether-utils";
-import { useAccount, useNetwork } from "wagmi";
-import toast, { Toaster } from "react-hot-toast";
+import { DEFAULT_VALUE, WETH, getCoinAddress } from "../utils/SupportedCoins";
+
 import NavItems from "./NavItems";
 import SwapOptions from "./swapOptions";
 import useSwaps from "../hooks/useSwaps";
 import { pairIsWhitelisted } from "../utils/pools-utils";
-import { switchNetwork } from "../utils/bridge-utils";
-import { calculateSlippageBounds } from "../utils/swap-utils";
-import { ethers } from "ethers";
+
+import { optimismSepolia, optimism } from "thirdweb/chains";
+import useWeb3Store from "../zustand/store";
 
 const Swap = () => {
-  const { address } = useAccount();
-  const { chain } = useNetwork();
-  const { openConnectModal } = useConnectModal();
+  const chain = optimismSepolia;
+  console.log(optimism);
+
   const {
     srcToken,
     setSrcToken,
@@ -73,11 +63,13 @@ const Swap = () => {
     price,
     setPrice,
     loading,
+    address,
   } = useSwaps();
 
-  const [sourceValue, setSourceValue] = useState();
-  const [destValue, setDestValue] = useState();
-  const [transactionMessage, setTransactionMessage] = useState("");
+  const setTransactionMessage = useWeb3Store(
+    (state) => state.setTransactionMessage
+  );
+  const transactionMessage = useWeb3Store((state) => state.transactionMessage);
 
   useEffect(() => {
     const isWhiteListed = pairIsWhitelisted(
@@ -86,7 +78,7 @@ const Swap = () => {
     );
 
     if (!address) setSwapBtnText(CONNECT_WALLET);
-    else if (chain?.id !== 11155420) setSwapBtnText(SWITCH_NETWORK);
+    // else if (chain?.id !== 11155111) setSwapBtnText(SWITCH_NETWORK);
     else if (
       srcToken === DEFAULT_VALUE ||
       destToken === DEFAULT_VALUE ||
@@ -111,50 +103,28 @@ const Swap = () => {
   }, []);
 
   const performSwap = async () => {
+    setTxPending(true);
     try {
-      setTxPending(true);
       let receipt;
 
       if (srcToken === WETH && destToken !== WETH) {
-        setTransactionMessage(
-          (prev) => `${prev}done.<br />Step 4/4: Performing swap...`
-        );
         receipt = await swapWethToTokens(outputValue);
         if (!receipt) {
-          setTxPending(false);
-          notifyError("Transaction failed");
-          return;
+          throw new Error("Transaction failed");
         }
-        setTxPending(false);
         notifySuccess("Swap completed succesfully!");
         return;
       } else if (srcToken !== WETH && destToken === WETH) {
         receipt = await swapTokensToWeth(inputValue);
         if (!receipt) {
-          setTxPending(false);
-          notifyError("Transaction failed");
-          return;
+          throw new Error("Transaction failed");
         }
         console.log("swap succesful", receipt);
-        setTransactionMessage(
-          (prev) => `${prev}done.<br />Step 3/3: Withdrawing eth...`
-        );
-        const withdrawReceipt = await unwrapEth();
-        if (!withdrawReceipt) {
-          setTxPending(false);
-          notifyError(
-            "Swap performed, but weth withdrawal failed. Please withdraw manually"
-          );
-          return;
-        }
-        setTransactionMessage((prev) => `${prev}done.`);
-        console.log("weth withdrawn succesfully", withdrawReceipt);
-        setTxPending(false);
+
         setInputValue("");
         setOutputValue("");
       }
 
-      setTxPending(false);
       if (receipt && !receipt.hasOwnProperty("transactionHash")) {
         notifyError(receipt);
       } else {
@@ -164,61 +134,16 @@ const Swap = () => {
       console.log(error);
       notifyError("Transaction failed");
     }
-    setTxPending(false);
   };
 
   const handleSwap = async () => {
     try {
-      if (srcToken === WETH && destToken !== WETH) {
-        console.log("wrapping " && inputValue && " eth");
-        //TODO calcular el precio
-
-        setTransactionMessage(`Step 1/4: Depositing ETH...`);
-        setTxPending(true);
-
-        const wrapReceipt = await wrapEth(inputValue * (1 + slippage / 100));
-        console.log("eth wrapped succesfully", wrapReceipt);
-
-        const allowance = await wethAllowance();
-        console.log(allowance, inputValue);
-        setTransactionMessage(
-          (prev) => `${prev}done.<br />Step 2/4: Granting WETH allowance...`
-        );
-        const receipt = await increaseWethAllowance(
-          (inputValue * (100 + slippage)) / 100
-        );
-
-        await receipt.wait();
-        console.log(receipt);
-
-        setTxPending(false);
-
-        performSwap();
-      } else if (srcToken !== WETH && destToken === WETH) {
-        setTxPending(true);
-        setTransactionMessage(`Step 1/3: Granting token allowance...`);
-        const allowance = await tokenAllowance();
-        console.log(allowance, inputValue);
-
-        const receipt = await increaseTokenAllowance(inputValue);
-        if (!receipt) {
-          notifyError("Transaction failed");
-          setTxPending(false);
-          return;
-        }
-        console.log(receipt);
-
-        setTransactionMessage(
-          (prev) => `${prev}done.<br />Step 2/3: Performing swap...`
-        );
-
-        performSwap();
-      }
+      await performSwap();
     } catch (error) {
       notifyError("Transaction failed");
-      setTxPending(false);
       console.log(error);
     }
+    setTxPending(false);
   };
 
   function handleReverseExchange(e) {
@@ -294,10 +219,7 @@ const Swap = () => {
       </button>
 
       {txPending && (
-        <TransactionStatus
-          transactionMessage={transactionMessage}
-          setTransactionMessage={setTransactionMessage}
-        />
+        <TransactionStatus transactionMessage={transactionMessage} />
       )}
     </div>
   );

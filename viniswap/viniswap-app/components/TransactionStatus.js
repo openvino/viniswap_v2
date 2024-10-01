@@ -4,10 +4,7 @@ import { Loading } from "@nextui-org/react";
 
 import { Dialog, Transition } from "@headlessui/react";
 
-export default function TransactionStatus({
-  transactionMessage,
-  setTransactionMessage,
-}) {
+export default function TransactionStatus({ transactionMessage }) {
   const [open, setOpen] = useState(true);
 
   // To prevent closing of the dialog
